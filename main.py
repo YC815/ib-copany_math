@@ -44,7 +44,7 @@ mpl.rcParams['ytick.labelsize'] = 10
 CSV_PATH = "data.csv"
 df = pd.read_csv(CSV_PATH)
 
-# ———— 3. 把「影響度」文字轉成數值 ————
+# 把「影響度」文字轉成數值
 impact_map = {
     "完全無影響": 0,
     "幾乎無影響": 1,
@@ -52,25 +52,62 @@ impact_map = {
     "比較嚴重": 3,
     "非常嚴重": 4
 }
-# 如果有"不確定"，把它變成 NaN，平均時會自動略過
 df = df.replace(impact_map)
 df = df.replace({"不確定": np.nan})
 
-# ———— 4. 圖表一：種族歧視重要性評分分佈（1–5）盒狀圖 ————
-plt.figure(figsize=(8, 4))
-box = plt.boxplot(df["種族歧視重要度"], vert=False, widths=0.7,
-                  patch_artist=True,  # 填充顏色
-                  boxprops=dict(facecolor='lightblue', alpha=0.7),  # 盒子顏色
-                  medianprops=dict(color='red', linewidth=2),  # 中位數線顏色
-                  whiskerprops=dict(color='gray', linewidth=1.5),  # 鬍鬚顏色
-                  capprops=dict(color='gray', linewidth=1.5))  # 端點顏色
-plt.title("種族歧視重要性評分分佈", pad=20, fontsize=14, fontweight='bold')
-plt.xlabel("重要性評分", labelpad=10)
-plt.yticks([])
-plt.grid(True, linestyle='--', alpha=0.3)
-plt.tight_layout()
-plt.savefig("output/種族歧視重要性評分分佈.png", dpi=300, bbox_inches="tight", facecolor='white')
-plt.close()
+
+def plot_importance_boxplot():
+    """
+    繪製種族歧視重要度的盒狀圖，並加入統計資訊
+    """
+    # 計算基本統計量
+    importance_data = df["種族歧視重要度"]
+    stats = {
+        "平均數": importance_data.mean(),
+        "中位數": importance_data.median(),
+        "標準差": importance_data.std(),
+        "最小值": importance_data.min(),
+        "最大值": importance_data.max()
+    }
+
+    # 創建圖表
+    plt.figure(figsize=(10, 6))
+
+    # 繪製盒狀圖
+    box = plt.boxplot(importance_data, vert=False, widths=0.7,
+                      patch_artist=True,
+                      boxprops=dict(facecolor='lightblue', alpha=0.7),
+                      medianprops=dict(color='red', linewidth=2),
+                      whiskerprops=dict(color='gray', linewidth=1.5),
+                      capprops=dict(color='gray', linewidth=1.5),
+                      flierprops=dict(marker='o', markerfacecolor='gray', markersize=8))
+
+    # 設定標題和標籤
+    plt.title("種族歧視重要性評分分佈", pad=20, fontsize=14, fontweight='bold')
+    plt.xlabel("重要性評分 (1-5)", labelpad=10)
+    plt.yticks([])
+
+    # 添加網格
+    plt.grid(True, linestyle='--', alpha=0.3)
+
+    # 添加統計資訊文字
+    stats_text = "\n".join([f"{k}: {v:.2f}" for k, v in stats.items()])
+    plt.text(0.02, 0.98, stats_text,
+             transform=plt.gca().transAxes,
+             verticalalignment='top',
+             bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+    # 設定x軸範圍
+    plt.xlim(0, 6)
+
+    # 調整布局並儲存
+    plt.tight_layout()
+    plt.savefig("output/種族歧視重要性評分分佈.png", dpi=300, bbox_inches="tight", facecolor='white')
+    plt.close()
+
+
+# 執行繪圖函數
+plot_importance_boxplot()
 
 # ———— 5. 圖表二：對政府制定更多種族平等政策的支持比例圓餅圖 ————
 
